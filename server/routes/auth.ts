@@ -2,11 +2,24 @@ import jwt from "jsonwebtoken";
 import express from 'express';
 import { authenticateJwt, SECRET } from "../middleware/";
 import { User } from "../db";
+import { signupInput} from "@imsanc/common"
 
 const router = express.Router();
 
   router.post('/signup', async (req, res) => {
-    const { username, password } = req.body;
+
+    const parseInput = signupInput.safeParse(req.body);
+
+    if(!parseInput.success){
+      return res.status(403).json({
+        msg : "error while parsing input"
+      })
+    }
+    
+    //As this is parsed input, we can safely use it as well as parse input has data in structure as defined
+    const username = parseInput.data.username;
+    const password = parseInput.data.password;
+
     const user = await User.findOne({ username });
     if (user) {
       res.status(403).json({ message: 'User already exists' });
